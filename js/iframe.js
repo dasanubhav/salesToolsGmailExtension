@@ -6,16 +6,16 @@ we want to load
 function main(emailAddress) {
   var iframe = document.createElement('iframe');
   iframe.id = 'embedded-profiler';
-  iframe.src = 'https://login.eloqua.com/apps/salesTools/profiler?emailAddress=' + emailAddress; //set the url of the remote iframe here
+  iframe.src = 'https://apps.devsecure.eloquacorp.com/salesTools/profiler?emailAddress=' + emailAddress; //set the url of the remote iframe here
   iframe.scrolling = "yes";
-  iframe.style.cssText = "border:0; width:320px; height:500px";
+  iframe.style.cssText = "border:0; width:400px; height:500px";
   iframe.onload = function() {
-    iframe.contentWindow.postMessage("greeting", 'https://login.eloqua.com');
+    iframe.contentWindow.postMessage("greeting", 'https://apps.devsecure.eloquacorp.com/salesTools/profiler');
   };
 
   window.addEventListener('message', function(event) {
     //verify message is from an origin we trust
-    if (event.data === 'close' && event.origin === 'https://login.eloqua.com') {
+    if (event.data === 'close' && event.origin === 'https://apps.devsecure.eloquacorp.com/salesTools/profiler') {
       // The remote iframe said to close, so relay that upwards.
       window.parent.postMessage('close', parentOrigin);
     }

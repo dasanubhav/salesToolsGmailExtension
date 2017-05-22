@@ -25,7 +25,7 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 				iframe.id = 'profiler';
 				iframe.src = chrome.runtime.getURL('iframe.html'); //load the iframe.html that is in the extension bundle
 				iframe.scrolling = "yes";
-				iframe.style.cssText = "border:0; width:320px; height:500px";
+				iframe.style.cssText = "border:0; width:400px; height:500px";
 				iframe.onload = function() {
 					iframe.contentWindow.postMessage({emailAddress : event.contact.emailAddress}, "*");
 				};

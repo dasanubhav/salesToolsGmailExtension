@@ -1,0 +1,28 @@
+{
+  "name": "SalesTools Gmail Extension",
+  "description": "SalesTools Gmail Extension shows the profile information for the email addresses",
+  "version": "1.0",
+  "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mail.google.com/*",
+        "https://inbox.google.com/*"
+      ],
+      "js": ["js/jquery.js", "js/inboxsdk.js","js/content.js", "js/iframe.js"],
+      "css": [ "styles/gmail.css" ],
+      "run_at": "document_start"
+    }
+  ],
+  "permissions": [
+    "https://mail.google.com/",
+    "https://inbox.google.com/",
+    "https://*.elqqa01.com/"
+  ],
+
+  "web_accessible_resources": [
+    "iframe.html",
+    "styles/gmail.css"
+  ],
+  "manifest_version": 2
+}

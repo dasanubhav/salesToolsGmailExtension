@@ -15,6 +15,7 @@
     }
   ],
   "permissions": [
+    "tabs",
     "https://mail.google.com/",
     "https://inbox.google.com/",
     "https://*.devsecure.eloquacorp.com/"

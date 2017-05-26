@@ -5,76 +5,98 @@ function log() {
 }
 
 var currentEmailAddress;
-var contentPanels = new Map();
+var sideBarPanels = new Map();
+var moleViewPanels = new Map();
 var composeEmailAddress;
-function renderProfiler(emailAddress, threadView) {
-	var contentPanel;
-	if (contentPanels && contentPanels.size > 0) {
-		if (contentPanels.has(emailAddress)) {
-			return;
+
+function _checkIfViewExists(views, emailAddress) {
+	var view;
+	if (views && views.size > 0) {
+		if (views.has(emailAddress)) {
+			return true;
 		} else {
-			contentPanel = contentPanels.values().next().value;
-			var lastEmailAddress = contentPanels.keys().next().value;
-			if (contentPanel) {
-				contentPanel.remove();
+			view = views.values().next().value;
+			var lastEmailAddress = views.keys().next().value;
+			if (view) {
+				if (view.remove) {
+					view.remove();
+				} else if (view.close) {
+					view.close();
+				}
 			}
-			contentPanels.delete(lastEmailAddress);
+			views.delete(lastEmailAddress);
 		}
 	}
-	var iframe = document.createElement('iframe');
-	iframe.id = 'profiler';
-	iframe.src = chrome.runtime.getURL('iframe.html'); //load the iframe.html that is in the extension bundle
-	iframe.scrolling = "yes";
-	iframe.style.cssText = "border:0; width:400px; height:500px";
-	iframe.onload = function() {
-		iframe.contentWindow.postMessage({emailAddress : emailAddress}, "*");
-	};
-	function modalMessageHandler(event) {
-		if (event.origin.match(/^chrome-extension:\/\//)) {
-			//make sure that the message is coming from an extension and you can get more strict that the
-			//extension id is the same as your public extension id
-			if (event.data === 'close') {
-				console.log('got close event from iframe');
-				//modal.close();
-			}
-		}
-	}
-	window.addEventListener('message', modalMessageHandler, false);
-	var el = document.createElement("div");
-	el.innerHTML = iframe;
-	contentPanel = threadView.addSidebarContentPanel({
-		id: 'sample sidebar',
-		title: 'Oracle Sales Tools Profiler',
-		el: iframe
-	});
-	contentPanels.set(emailAddress, contentPanel);
+	return false;
 }
 
-function renderModal(emailAddress, sdk) {
-	var iframe = document.createElement('iframe');
-	iframe.id = 'profiler';
-	iframe.src = chrome.runtime.getURL('iframe.html'); //load the iframe.html that is in the extension bundle
-	iframe.scrolling = "yes";
-	iframe.style.cssText = "border:0; width:400px; height:500px";
-	iframe.onload = function() {
-		iframe.contentWindow.postMessage({emailAddress : emailAddress}, "*");
-	};
-	function modalMessageHandler(event) {
-		if (event.origin.match(/^chrome-extension:\/\//)) {
-			//make sure that the message is coming from an extension and you can get more strict that the
-			//extension id is the same as your public extension id
-			if (event.data === 'close') {
-				console.log('got close event from iframe');
-				//modal.close();
+function renderProfiler(emailAddress, threadView) {
+	if (!_checkIfViewExists(sideBarPanels, emailAddress)) {
+		var iframe = document.createElement('iframe');
+		iframe.id = 'profiler';
+		iframe.src = chrome.runtime.getURL('iframe.html'); //load the iframe.html that is in the extension bundle
+		iframe.scrolling = "yes";
+		iframe.style.cssText = "border:0; width:400px; height:500px";
+		iframe.onload = function() {
+			iframe.contentWindow.postMessage({emailAddress : emailAddress}, "*");
+		};
+		function modalMessageHandler(event) {
+			if (event.origin.match(/^chrome-extension:\/\//)) {
+			    //make sure that the message is coming from an extension and you can get more strict that the
+			    //extension id is the same as your public extension id
+			    if (event.data === 'close') {
+			    	console.log('got close event from iframe');
+			    	//modal.close();
+			    }
 			}
 		}
+		window.addEventListener('message', modalMessageHandler, false);
+		var el = document.createElement("div");
+		el.innerHTML = iframe;
+		var sideBarPanel = threadView.addSidebarContentPanel({
+			id: 'sample sidebar',
+			title: 'Oracle Sales Tools Profiler',
+			el: iframe
+		});
+		sideBarPanels.set(emailAddress, sideBarPanel);
 	}
-	window.addEventListener('message', modalMessageHandler, false);
-	var el = document.createElement("div");
-	el.innerHTML = iframe;
-	var modal = sdk.Modal.show({
-		el: el
-	});
+}
+
+function renderModal(emailAddress, sdk, composeView) {
+	if (!_checkIfViewExists(moleViewPanels, emailAddress)) {
+		var iframe = document.createElement('iframe');
+		iframe.id = 'profiler';
+		iframe.src = chrome.runtime.getURL('iframe.html'); //load the iframe.html that is in the extension bundle
+		iframe.scrolling = "yes";
+		iframe.style.cssText = "border:0; width:400px; height:500px";
+		iframe.onload = function() {
+			iframe.contentWindow.postMessage({emailAddress : emailAddress}, "*");
+		};
+		function modalMessageHandler(event) {
+			if (event.origin.match(/^chrome-extension:\/\//)) {
+			    //make sure that the message is coming from an extension and you can get more strict that the
+			    //extension id is the same as your public extension id
+			    if (event.data === 'close') {
+			    	console.log('got close event from iframe');
+			    	//modal.close();
+			    }
+			}
+		}
+		window.addEventListener('message', modalMessageHandler, false);
+		/*var modal = sdk.Modal.show({
+			el: iframe
+		});*/
+		/*var drawerPanel = sdk.Widgets.showDrawerView({
+			el: iframe,
+			composeView: composeView,
+			closeWithCompose: true
+		});*/
+		var moleViewPanel = sdk.Widgets.showMoleView({
+			el: iframe
+		});
+		moleViewPanels.set(emailAddress, moleViewPanel);
+	}
+	
 }
 
 InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(function(sdk) {
@@ -102,7 +124,7 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 					if (evt.target.nodeName === 'SPAN') {
 						if (evt.target.attributes && evt.target.attributes.email) {
 							console.log(evt.target.attributes.email.value);
-							renderModal(evt.target.attributes.email.value, sdk);
+							renderModal(evt.target.attributes.email.value, sdk, composeView);
 						}
 					}
 				}

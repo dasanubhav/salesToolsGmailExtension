@@ -1,3 +1,323 @@
 .y3 * {
 	width: 400px !important;
 }
+
+/*
+ * CSS specifically for the editor frame.
+ *
+ * @author Brett Gardner
+ */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: white;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+* {
+    resize: none;
+}
+
+.drop-overlay {
+    position: fixed;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    pointer-events: none;
+    cursor: no-drop;
+    display: none;
+    background: url('/salesTools/static/img/icons/engage/icon-no-drop.svg') no-repeat center;
+    background-size: 120px;
+    background-color: black;
+    opacity: 0.25;
+}
+
+a:not(.cke_button):hover {
+    cursor: pointer;
+}
+
+.dat-email a {
+    pointer-events: none;
+    cursor: default;
+}
+
+.dat-email *[contenteditable="true"] a {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+.dat-email *[contenteditable="false"] a {
+    pointer-events: none !important;
+    cursor: default !important;
+}
+
+/*
+ * This is for IE11 specifically, which doesn't properly implement the pointer-events attribute
+ * when applied to an <a> tag (it still passes down pointer events from the parent <div>).
+ */
+div.attachment {
+    pointer-events: none;
+    cursor: default;
+}
+
+/* Disables the default browser outline for blank emails. */
+.dat-email > #content:focus {
+    outline:none;
+}
+
+.shared-toolbar {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    height: 43px;
+    width: 100%;
+    z-index: 100000;
+}
+
+.elq-locked {
+    position: relative;
+    left: 0 !important;
+    top: 0 !important;
+    -webkit-transition: all .1s;
+    outline: 3px solid rgba(100,100,100,.2);
+    outline-offset: -3px;
+    cursor: not-allowed;
+/*    -moz-user-select: all;*/
+    -moz-user-modify: read-only;
+/*    -webkit-user-select: all;*/
+    -webkit-user-modify: read-only;
+}
+
+.elq-locked:hover,
+.elq-locked:focus {
+    outline: 3px solid rgba(100,100,100,1);
+}
+
+.elq-locked:hover::after,
+.elq-locked:focus::after {
+    position: absolute;
+    display: block;
+    content: "";  
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-color: rgba(100,100,100,.2);
+    -webkit-transition: all .1s;
+    z-index: 100;
+}
+
+.elq-locked::before { 
+    position:absolute;
+    display:block;
+    font-family: 'FontAwesome';
+    top:3px;
+    right:3px;
+    content: "\f023";
+    font-size: 14px;
+    color:white;
+    background-color:rgba(100,100,100,.2);
+    text-align:center;
+    width:28px;
+    height:28px;
+    line-height: 28px;
+    font-weight: normal;
+    -webkit-transition:all .1s;
+    z-index:101;
+}
+
+.elq-locked:hover::before {
+    background-color:rgba(100,100,100,1);
+}
+
+*[elq-edit],
+.eloqua-editable-content,
+.device-mobile *[elq-edit],
+.device-mobile .eloqua-editable-content:hover {
+    position:relative;
+    left: 0 !important;
+    top: 0 !important;
+    -webkit-transition:all .1s;
+    outline: 3px solid rgba(103,157,19,.25);
+    outline-offset:-3px;
+    cursor:pointer;
+}
+
+*[elq-edit]:hover,
+.eloqua-editable-content:hover {
+    outline: 3px solid rgba(103,157,19,1);
+}
+
+*[elq-edit]::before,
+.eloqua-editable-content::before,
+.device-mobile *[elq-edit]::before,
+.device-mobile *[elq-edit]:hover::before,
+.device-mobile .eloqua-editable-content::before,
+.device-mobile .eloqua-editable-content:hover::before {
+    position:absolute;
+    display:block;
+    font-family: 'FontAwesome';
+    font-size: 14px;
+    top:3px;
+    right:3px;
+    content: "\f040";
+    color:white;
+    background-color:rgba(103,157,19,0.25);
+    width:28px;
+    height:28px;
+    line-height: 28px;
+    text-align: center;
+    font-weight: normal;
+    -webkit-transition:all .1s; 
+}
+
+*[elq-edit]:hover::before,
+.eloqua-editable-content:hover::before {
+    background-color:rgba(103,157,19,1);
+}
+
+*[elq-edit]:focus,
+.eloqua-editable-content:focus,
+.device-mobile *[elq-edit]:focus,
+.device-mobile .eloqua-editable-content:focus {
+    outline: 3px dashed #679D14;
+    position:relative;
+    left: 0 !important;
+    top: 0 !important;
+    background-color: transparent;
+    box-shadow: 0px 0px 0px 2000px rgba(0,0,0,.2);
+    z-index:999;
+    outline-offset:0px;
+}
+
+*[elq-edit]:focus::before,
+.eloqua-editable-content:focus::before {
+    display:none !important;
+}
+
+/* Elements with certain Eloqua tags aren't editable. */
+*[elqtype="Section"],
+*[elqtype="DynamicContent"],
+*[elqtype="signaturelayout"],
+.eloqua-signature,
+.emailheader,
+.emailfooter {
+    position: relative;
+    left: 0 !important;
+    top: 0 !important;
+    cursor: not-allowed;
+    -webkit-transition:all .1s;
+    outline: 3px solid rgba(5,113,206,.25);
+}
+
+*[elq-edit] *[elqtype],
+.eloqua-signature,
+.eloqua-editable-content *[elqtype] {
+    -moz-user-select: all;
+    -moz-user-modify: read-only;
+    -webkit-user-select: all;
+    -webkit-user-modify: read-only;
+    display:table;
+}
+
+*[elqtype="Section"]::after,
+*[elqtype="DynamicContent"]::after,
+*[elqtype="signaturelayout"]::after,
+.eloqua-signature::after,
+.emailheader::after,
+.emailfooter::after {
+    position:absolute;
+    top:3px;
+    right:3px;
+    content: attr(title);
+    background-color:rgba(5,113,206,.25);
+    color:white;
+    font-family: sans-serif;
+    font-size: 10px;
+    opacity:.8;
+    padding:4px;
+    -webkit-transition:all .1s;
+}
+
+.emailheader::after {
+    content: "header";
+}
+
+.emailfooter::after {
+    content: "footer";
+}
+
+*[elqtype]:hover::after,
+.eloqua-signature::after,
+.emailheader:hover::after,
+.emailfooter:hover::after {
+    background-color:rgba(5,113,206,1);
+}     
+
+*[elqtype="Section"]:hover,
+*[elqtype="DynamicContent"]:hover,
+*[elqtype="signaturelayout"]:hover,
+.eloqua-signature:hover,
+.emailheader:hover,
+.emailfooter:hover {
+    outline: 3px solid rgba(5,113,206,1);
+    position:relative;
+    left: 0 !important;
+    top: 0 !important;
+    background-color: rgba(5,113,206,.25);
+} 
+
+.elq-locked *[elqtype="Section"],
+.elq-locked *[elqtype="DynamicContent"],
+.elq-locked *[elqtype="signaturelayout"] {
+    outline: 0;
+    /* HACK: [BG] Setting 'outline: 0' doesn't seem to work in Chrome. */
+    outline-color: rgba(255, 255, 255, 0.0);
+}
+
+.elq-locked *[elqtype]::after {
+    display: none;
+}
+
+@media screen and (max-width: 579px) {
+    .device-mobile .dat-email {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Field merge decoration (eloquaemail and eloquasender) */
+span.eloquaemail {
+    padding: 0px 4px;
+    color: #FFFFFF;
+    background-color: rgba(252,251,232,0.90);
+    border: 1px solid #FBCE4A;
+    color: #515253;
+    border-radius: 6px;
+    -moz-user-select: all;
+    -webkit-user-select: all;
+    -moz-user-modify: read-only;
+    -webkit-user-modify: read-only;
+    user-select: all;
+    user-modify: read-only;
+}
+
+span.eloquasender {
+    padding: 0px 4px;
+    background-color: rgba(247,240,252,0.90);
+    border: 1px solid #A984B8;
+    border-radius: 6px;
+    color: #515253;
+    -moz-user-select: all;
+    -webkit-user-select: all;
+    -moz-user-modify: read-only;
+    -webkit-user-modify: read-only;
+    user-select: all;
+    user-modify: read-only;
+}

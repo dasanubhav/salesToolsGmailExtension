@@ -1,6 +1,6 @@
 {
-  "name": "SalesTools Gmail Extension",
-  "description": "SalesTools Gmail Extension shows the profile information for the email addresses",
+  "name": "Oracle Eloqua Sales Tools For Gmail",
+  "description": "Oracle Eloqua Sales Tools For Gmail Allows sales representatives to view contacts' profile information from Eloqua and send personalized email content in Eloqua.",
   "version": "1.0",
   "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
   "content_scripts": [
@@ -9,7 +9,7 @@
         "https://mail.google.com/*",
         "https://inbox.google.com/*"
       ],
-      "js": ["js/jquery.js", "js/inboxsdk.js","js/content.js", "js/iframe.js"],
+      "js": ["js/jquery.js", "js/inboxsdk.js","js/content.js", "js/profilerIframe.js", "js/engageIframe.js"],
       "css": [ "styles/gmail.css" ],
       "run_at": "document_start"
     }
@@ -22,7 +22,8 @@
   ],
 
   "web_accessible_resources": [
-    "iframe.html",
+    "profilerIframe.html",
+    "engageIframe.html",
     "styles/gmail.css"
   ],
   "manifest_version": 2

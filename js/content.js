@@ -56,6 +56,8 @@ function renderProfiler(emailAddress, threadView) {
 		var sideBarPanel = threadView.addSidebarContentPanel({
 			id: 'sample sidebar',
 			title: 'Oracle Sales Tools Profiler',
+			iconUrl: chrome.extension.getURL("img/App_Icon_128.png"),
+			appIconUrl: chrome.extension.getURL("img/App_Icon_128.png"),
 			el: iframe
 		});
 		sideBarPanels.set(emailAddress, sideBarPanel);
@@ -120,7 +122,7 @@ function renderTemplateChooser(sdk, composeView) {
 			} else if (event.data.email) {
 				if (modal) {
 					modal.close();
-					composeView.insertHTMLIntoBodyAtCursor(event.data.email);
+					composeView.setBodyHTML(event.data.email);
 					composeView.setSubject(event.data.subject);
 				}
 			}
@@ -159,7 +161,7 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 	sdk.Compose.registerComposeViewHandler(function(composeView) {
 		composeView.addButton({
 			title: "Browse Template",
-			iconUrl: 'https://example.com/foo.png',
+			iconUrl: chrome.extension.getURL("img/App_Icon_128.png"),
 			onClick: function(event) {
 				renderTemplateChooser(sdk, composeView);
 			},

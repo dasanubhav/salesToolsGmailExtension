@@ -24,7 +24,8 @@
   "web_accessible_resources": [
     "profilerIframe.html",
     "engageIframe.html",
-    "styles/gmail.css"
+    "styles/gmail.css",
+    "img/*.png"
   ],
   "manifest_version": 2
 }

@@ -9,7 +9,7 @@
         "https://mail.google.com/*",
         "https://inbox.google.com/*"
       ],
-      "js": ["js/jquery.js", "js/inboxsdk.js","js/content.js", "js/profilerIframe.js", "js/engageIframe.js"],
+      "js": ["js/jquery.js", "js/inboxsdk.js","js/content.js", "js/profilerIframe.js", "js/engageIframe.js", "js/engage.js", "js/profiler.js"],
       "css": [ "styles/gmail.css" ],
       "run_at": "document_start"
     }
@@ -24,6 +24,8 @@
   "web_accessible_resources": [
     "profilerIframe.html",
     "engageIframe.html",
+    "engage.html",
+    "profiler.html",
     "styles/gmail.css",
     "img/*.png"
   ],

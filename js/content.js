@@ -8,6 +8,8 @@ var currentEmailAddress;
 var sideBarPanels = new Map();
 var moleViewPanels = new Map();
 var composeEmailAddress;
+var enableTracking = false;
+var XSRF_TOKEN;
 
 function _checkIfViewExists(views, emailAddress) {
 	var view;
@@ -30,7 +32,7 @@ function _checkIfViewExists(views, emailAddress) {
 	return false;
 }
 
-function renderProfiler(emailAddress, threadView) {
+function renderProfilerInThreadView(emailAddress, threadView) {
 	if (!_checkIfViewExists(sideBarPanels, emailAddress)) {
 		var iframe = document.createElement('iframe');
 		iframe.id = 'profiler';
@@ -64,7 +66,7 @@ function renderProfiler(emailAddress, threadView) {
 	}
 }
 
-function renderModal(emailAddress, sdk, composeView) {
+function renderProfilerInComposeView(emailAddress, sdk, composeView) {
 	if (!_checkIfViewExists(moleViewPanels, emailAddress)) {
 		var iframe = document.createElement('iframe');
 		iframe.id = 'profiler';
@@ -85,20 +87,63 @@ function renderModal(emailAddress, sdk, composeView) {
 			}
 		}
 		window.addEventListener('message', modalMessageHandler, false);
-		/*var modal = sdk.Modal.show({
-			el: iframe
-		});*/
-		/*var drawerPanel = sdk.Widgets.showDrawerView({
-			el: iframe,
-			composeView: composeView,
-			closeWithCompose: true
-		});*/
 		var moleViewPanel = sdk.Widgets.showMoleView({
-			el: iframe
+			el: iframe,
+			title: 'Oracle Sales Tools Profiler'
 		});
 		moleViewPanels.set(emailAddress, moleViewPanel);
 	}
 	
+}
+
+function renderEngage(sdk) {
+	var iframe = document.createElement('iframe');
+	iframe.id = 'engage';
+	iframe.src = chrome.runtime.getURL('engage.html'); //load the iframe.html that is in the extension bundle
+	iframe.scrolling = "yes";
+	iframe.style.cssText = "border:0; width:600px; height:600px";
+	iframe.onload = function() {
+		iframe.contentWindow.postMessage({showEngage : true}, "*");
+	};
+	function modalMessageHandler(event) {
+		if (event.origin.match(/^chrome-extension:\/\//)) {
+			//make sure that the message is coming from an extension and you can get more strict that the
+			//extension id is the same as your public extension id
+			if (event.data === 'close') {
+			    console.log('got close event from iframe');
+			    	//modal.close();
+			}
+		}
+	}
+	window.addEventListener('message', modalMessageHandler, false);
+	var modal = sdk.Modal.show({
+		el: iframe
+	});
+}
+
+function renderProfiler(sdk) {
+	var iframe = document.createElement('iframe');
+	iframe.id = 'profiler';
+	iframe.src = chrome.runtime.getURL('profiler.html'); //load the iframe.html that is in the extension bundle
+	iframe.scrolling = "yes";
+	iframe.style.cssText = "border:0; width:600px; height:600px";
+	iframe.onload = function() {
+		iframe.contentWindow.postMessage({showProfiler : true}, "*");
+	};
+	function modalMessageHandler(event) {
+		if (event.origin.match(/^chrome-extension:\/\//)) {
+			//make sure that the message is coming from an extension and you can get more strict that the
+			//extension id is the same as your public extension id
+			if (event.data === 'close') {
+			    console.log('got close event from iframe');
+			    	//modal.close();
+			}
+		}
+	}
+	window.addEventListener('message', modalMessageHandler, false);
+	var modal = sdk.Modal.show({
+		el: iframe
+	});
 }
 
 function renderTemplateChooser(sdk, composeView) {
@@ -108,7 +153,7 @@ function renderTemplateChooser(sdk, composeView) {
 	iframe.id = 'engage';
 	iframe.src = chrome.runtime.getURL('engageIframe.html'); //load the iframe.html that is in the extension bundle
 	iframe.scrolling = "yes";
-	iframe.style.cssText = "border:0; width:400px; height:500px";
+	iframe.style.cssText = "border:0; width:600px; height:600px";
 	iframe.onload = function() {
 		iframe.contentWindow.postMessage({fromGmail : true}, "*");
 	};
@@ -124,19 +169,35 @@ function renderTemplateChooser(sdk, composeView) {
 					modal.close();
 					composeView.setBodyHTML(event.data.email);
 					composeView.setSubject(event.data.subject);
+					XSRF_TOKEN = event.data.xsrfToken;
 				}
 			}
 		}
 	}
 	window.addEventListener('message', modalMessageHandler, false);
 	modal = sdk.Modal.show({
-		el: iframe
+		el: iframe,
+		title: 'Oracle Sales Tools Engage'
 	});
 		/*var drawerPanel = sdk.Widgets.showDrawerView({
 			el: iframe,
 			composeView: composeView,
 			closeWithCompose: true
 		});*/
+}
+
+function populateExternalEmailPayload(emailAddresses, fromEmailAddress, subject, emailContent) {
+	return {
+		name: "External Email",
+		SenderEmail: "anubhav.das@oracle.com",
+		RecipientEmails: emailAddresses,
+		HtmlContent: {
+			type: "RawHtmlContent",
+			docType: "<!DOCTYPE html>",
+			Html: emailContent
+		},
+		SubjectLine: subject
+	};
 }
 
 InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(function(sdk) {
@@ -147,15 +208,29 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 	link.rel = "stylesheet";
 	document.getElementsByTagName("head")[0].appendChild(link);
 	var contentPanel;
+	sdk.Toolbars.addToolbarButtonForApp({
+        title: 'Engage',
+        iconUrl: chrome.extension.getURL("img/App_Icon_128.png"),
+        onClick: function(e) {
+        	renderEngage(sdk);
+        }
+    });
+    sdk.Toolbars.addToolbarButtonForApp({
+        title: 'Profiler',
+        iconUrl: chrome.extension.getURL("img/App_Icon_128.png"),
+        onClick: function(e) {
+        	renderProfiler(sdk);
+        }
+    });
 	sdk.Conversations.registerMessageViewHandler(function(messageView) {
 		var threadView = messageView.getThreadView();
 		messageView.on('contactHover', function(event) {
-			renderProfiler(event.contact.emailAddress, threadView)
+			renderProfilerInThreadView(event.contact.emailAddress, threadView)
 		});
 	});
 	sdk.Conversations.registerThreadViewHandler(function(threadView) {
 		threadView.on('contactHover', function(event) {
-			renderProfiler(event.contact.emailAddress, threadView)
+			renderProfilerInThreadView(event.contact.emailAddress, threadView)
 		});
 	});
 	sdk.Compose.registerComposeViewHandler(function(composeView) {
@@ -169,17 +244,70 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 			type: "MODIFIER",
 			orderHint: 0
 		});
+		composeView.addButton({
+			title: "Enable Tracking",
+			iconUrl: chrome.extension.getURL("img/App_Icon_128.png"),
+			onClick: function(menu) {
+				menu.dropdown.el.innerHTML = ' <br> <input class="button1" type="checkbox" value="enabled" name="enableTracking"> Enable Tracking <br>';
+				const button1 = menu.dropdown.el.querySelector('.button1');
+				button1.addEventListener('click', function(e) {
+					if (e.target.checked) {
+						enableTracking = true;
+					}
+				});
+			},
+			hasDropdown: true,
+			type: "MODIFIER",
+			orderHint: 0
+		});
 		composeView.on('recipientsChanged', function(event) {
 			$('.inboxsdk__compose').find('[email]').hover(function(evt) {
 				if (evt.type === 'mouseenter') {
 					if (evt.target.nodeName === 'SPAN') {
 						if (evt.target.attributes && evt.target.attributes.email) {
-							console.log(evt.target.attributes.email.value);
-							renderModal(evt.target.attributes.email.value, sdk, composeView);
+							renderProfilerInComposeView(evt.target.attributes.email.value, sdk, composeView);
 						}
 					}
 				}
 			});
+		});
+		composeView.on('presending', function(event) {
+			if (enableTracking) {
+				var subj = composeView.getSubject();
+				var html = composeView.getHTMLContent();
+				var fromContact = composeView.getFromContact();
+				var toContacts = composeView.getToRecipients();
+				var bccContacts = composeView.getBccRecipients();
+				var ccContacts = composeView.getCcRecipients();
+				var url = 'https://devsecure.eloquacorp.com/API/REST/2.0/assets/email/external' 
+				var emailAddresses = [];
+				for (var i=0; i < toContacts.length; i++) {
+					emailAddresses.push(toContacts[i].emailAddress);
+				}
+				for (var j=0; j < bccContacts.length; j++) {
+					emailAddresses.push(bccContacts[j].emailAddress);
+				}
+				for (var k=0; k < ccContacts.length; k++) {
+					emailAddresses.push(ccContacts[k].emailAddress);
+				}
+				emailAddresses.join(",");
+				var externalEmailData = populateExternalEmailPayload(emailAddresses, fromContact.emailAddress, subj, html);
+				$.ajax({
+					type: 'POST',
+					data: JSON.stringify(externalEmailData),
+					dataType: 'json',
+					contentType: 'application/json',
+					url: url + '?xsrfToken=' + XSRF_TOKEN,
+					success: function(response, status, jqxhr) {
+						composeView.setBodyHTML(response.HtmlContent.html);
+						console.log('Created external email successfully');
+					},
+					error: function(jqxhr) {
+						console.log('Error creating external email');
+					}
+				});
+			}
+			
 		});
 		/*composeView.addButton({
 			title: "iframe test",

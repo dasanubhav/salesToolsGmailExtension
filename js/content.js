@@ -101,7 +101,7 @@ function renderEngage(sdk) {
 	iframe.id = 'engage';
 	iframe.src = chrome.runtime.getURL('engage.html'); //load the iframe.html that is in the extension bundle
 	iframe.scrolling = "yes";
-	iframe.style.cssText = "border:0; width:600px; height:600px";
+	iframe.style.cssText = "border:0; width:500px; height:500px";
 	iframe.onload = function() {
 		iframe.contentWindow.postMessage({showEngage : true}, "*");
 	};
@@ -126,7 +126,7 @@ function renderProfiler(sdk) {
 	iframe.id = 'profiler';
 	iframe.src = chrome.runtime.getURL('profiler.html'); //load the iframe.html that is in the extension bundle
 	iframe.scrolling = "yes";
-	iframe.style.cssText = "border:0; width:600px; height:600px";
+	iframe.style.cssText = "border:0; width:400px; height:500px";
 	iframe.onload = function() {
 		iframe.contentWindow.postMessage({showProfiler : true}, "*");
 	};
@@ -186,6 +186,48 @@ function renderTemplateChooser(sdk, composeView) {
 		});*/
 }
 
+function getActivityFeed() {
+	var messages = [];
+	var url = 'https://devsecure.eloquacorp.com/API/REST/2.0/assets/email/deployments/inlinereports?depth=partial&orderBy=endAtCreatedAt' + ' DESC&extensions=e10'; 
+	$.ajax({
+		type: 'GET',
+		dataType: 'json',
+		contentType: 'application/json',
+		url: url + '&xsrfToken=' + XSRF_TOKEN,
+		success: function(response, status, jqxhr) {
+			if (response && response.elements && response.elements.length > 0) {
+				for (var i=0; i < response.elements.length; i++) {
+					var email = response.elements[i];
+					if (email.id) {
+						$.ajax({
+							type: 'GET',
+							dataType: 'json',
+							contentType: 'application/json',
+							url: 'https://devsecure.eloquacorp.com/API/REST/2.0/assets/email/deployment/' + email.id + '?&extensions=e10&xsrfToken=' + XSRF_TOKEN,
+							success: function(response, status, jqxhr) {
+								if (response && response.statistics && response.statistics.length > 0) {
+									for (var j=0; j < response.statistics.length; j++) {
+										if (response.statistics[j].lastOpen) {
+											this.messages.push('<p>' + response.statistics[j].emailAddress + ' opened ' + response.name + ' at ' + response.statistics[j].lastOpen + '</p>');
+										}
+										if (response.statistics[j].lastClickThrough) {
+											this.messages.push('<p>' + response.statistics[j].emailAddress + ' clicked ' + response.name + ' at ' + response.statistics[j].lastClickThrough + '</p>');
+										}
+									}
+								}
+							}.bind(this),
+							error: function(jqxhr) {
+							}.bind(this)
+						})
+					}
+				}
+			}
+		}.bind(this),
+		error: function(jqxhr) {
+		}.bind(this)
+	});
+}
+
 function populateExternalEmailPayload(emailAddresses, fromEmailAddress, subject, emailContent) {
 	return {
 		name: "External Email",
@@ -234,6 +276,7 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 		});
 	});
 	sdk.Compose.registerComposeViewHandler(function(composeView) {
+		enableTracking = false;
 		composeView.addButton({
 			title: "Browse Template",
 			iconUrl: chrome.extension.getURL("img/App_Icon_128.png"),
@@ -248,7 +291,7 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 			title: "Enable Tracking",
 			iconUrl: chrome.extension.getURL("img/App_Icon_128.png"),
 			onClick: function(menu) {
-				menu.dropdown.el.innerHTML = ' <br> <input class="button1" type="checkbox" value="enabled" name="enableTracking"> Enable Tracking <br>';
+				menu.dropdown.el.innerHTML = ' <br> <input class="button1" type="checkbox" value="enabled" name="enableTracking"> Enable Tracking </input> <br>';
 				const button1 = menu.dropdown.el.querySelector('.button1');
 				button1.addEventListener('click', function(e) {
 					if (e.target.checked) {
@@ -271,6 +314,25 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 				}
 			});
 		});
+		composeView.on('toContactAdded', function(contact) {
+			if (contact) {
+				$.ajax({
+					type: 'GET',
+					dataType: 'json',
+					contentType: 'application/json',
+					url: "https://devsecure.eloquacorp.com/API/data/1.0/contacts?search='C_EmailAddress=" + contact.contact.emailAddress + "*'&" + 'xsrfToken=' + XSRF_TOKEN,
+					success: function(response, status, jqxhr) {
+						if (response && response.elements && response.elements.length == 1) {
+							$('.inboxsdk__compose').find("[email" + "=" + "'" + contact.contact.emailAddress + "'" + "]").css('background-color', '#00FF7F');
+						} else {
+							$('.inboxsdk__compose').find("[email" + "=" + "'" + contact.contact.emailAddress + "'" + "]").css('background-color', '#FF4500');
+						}
+					},
+					error: function(jqxhr) {
+					}
+				});
+			}
+		});
 		composeView.on('presending', function(event) {
 			if (enableTracking) {
 				var subj = composeView.getSubject();
@@ -279,7 +341,7 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 				var toContacts = composeView.getToRecipients();
 				var bccContacts = composeView.getBccRecipients();
 				var ccContacts = composeView.getCcRecipients();
-				var url = 'https://devsecure.eloquacorp.com/API/REST/2.0/assets/email/external' 
+				var url = 'https://devsecure.eloquacorp.com/API/REST/2.0/assets/email/external'; 
 				var emailAddresses = [];
 				for (var i=0; i < toContacts.length; i++) {
 					emailAddresses.push(toContacts[i].emailAddress);
@@ -300,6 +362,7 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 					url: url + '?xsrfToken=' + XSRF_TOKEN,
 					success: function(response, status, jqxhr) {
 						composeView.setBodyHTML(response.HtmlContent.html);
+						debugger;
 						console.log('Created external email successfully');
 					},
 					error: function(jqxhr) {

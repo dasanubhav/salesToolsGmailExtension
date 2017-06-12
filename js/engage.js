@@ -6,9 +6,9 @@ we want to load
 function main(showEngage) {
   var iframe = document.createElement('iframe');
   iframe.id = 'embedded-engage';
-  iframe.src = 'https://apps.devsecure.eloquacorp.com/salesTools/engage'; //set the url of the remote iframe here
+  iframe.src = 'https://apps.devsecure.eloquacorp.com/salesTools/engage?src=gmail'; //set the url of the remote iframe here
   iframe.scrolling = "yes";
-  iframe.style.cssText = "border:0; width:600px; height:600px";
+  iframe.style.cssText = "border:0; width:500px; height:500px";
   iframe.onload = function() {
     iframe.contentWindow.postMessage("greeting", 'https://apps.devsecure.eloquacorp.com/salesTools/engage');
   };
@@ -18,7 +18,7 @@ function main(showEngage) {
     if (event.data === 'close' && event.origin === 'https://apps.devsecure.eloquacorp.com/salesTools/engage') {
       // The remote iframe said to close, so relay that upwards.
       window.parent.postMessage('close', parentOrigin);
-    }
+    } 
   }, false);
   //console.log(currentEmailAddress);
   

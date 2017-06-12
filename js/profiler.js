@@ -6,7 +6,7 @@ we want to load
 function main(showProfiler) {
   var iframe = document.createElement('iframe');
   iframe.id = 'embedded-profiler';
-  iframe.src = 'https://apps.devsecure.eloquacorp.com/salesTools/profiler'; //set the url of the remote iframe here
+  iframe.src = 'https://apps.devsecure.eloquacorp.com/salesTools/profiler?src=gmail'; //set the url of the remote iframe here
   iframe.scrolling = "yes";
   iframe.style.cssText = "border:0; width:400px; height:500px";
   iframe.onload = function() {

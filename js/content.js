@@ -242,6 +242,87 @@ function populateExternalEmailPayload(emailAddresses, fromEmailAddress, subject,
 	};
 }
 
+function attachDoubleClick(sdk, emailAddress, firstName, lastName, isNew) {
+	$('.inboxsdk__compose').find("[email" + "=" + "'" + emailAddress + "'" + "]").dblclick(function(evt) {
+					var x = document.getElementById("form_sample");
+
+					var createform = document.createElement('form'); // Create New Element form
+					createform.setAttribute("action", "");        // Setting action Attribute on form
+					createform.setAttribute("method", "post");  // Setting method Attribute on form
+					//x.appendChild(createform);
+
+					var heading = document.createElement('h2'); // Heading of form
+					if (isNew) {
+						heading.innerHTML = "Create Contact";  
+					} else {
+						heading.innerHTML = "Update Contact";  
+					}
+					
+					createform.appendChild(heading);
+
+					var line = document.createElement('hr');  //giving horizontal row after heading
+					createform.appendChild(line);
+
+					var linebreak = document.createElement('br');
+					createform.appendChild(linebreak);
+
+					var emailLabel = document.createElement('label'); // Create Label for name field
+					emailLabel.innerHTML = "EmailAddress : ";            // Set Field Labels
+					createform.appendChild(emailLabel);
+
+					var emailElement = document.createElement('input'); // Create input field for name
+					emailElement.setAttribute("type", "text");  
+					emailElement.setAttribute("name", "dname");
+					emailElement.setAttribute("value", emailAddress);
+					createform.appendChild(emailElement);
+
+					var linebreak = document.createElement('br');
+					createform.appendChild(linebreak);
+
+					var firstNameLabel = document.createElement('label');  //Create Label for email field
+					firstNameLabel.innerHTML = "FirstName : ";
+					createform.appendChild(firstNameLabel);
+
+					var firstNameElement = document.createElement('input'); // Create input field for email
+					firstNameElement.setAttribute("type", "text");
+					firstNameElement.setAttribute("name", "demail");
+					firstNameElement.setAttribute("value", firstName);
+					createform.appendChild(firstNameElement);
+
+					var emailbreak = document.createElement('br');
+					createform.appendChild(emailbreak);
+
+					var lastNameLabel = document.createElement('label');  //Create Label for email field
+					lastNameLabel.innerHTML = "LastName : ";
+					createform.appendChild(lastNameLabel);
+
+					var lastNameElement = document.createElement('input'); // Create input field for email
+					lastNameElement.setAttribute("type", "text");
+					lastNameElement.setAttribute("name", "demail");
+					lastNameElement.setAttribute("value", lastName);
+					createform.appendChild(lastNameElement);
+
+					var messagebreak = document.createElement('br');
+					createform.appendChild(messagebreak);
+
+					// Append Submit Button
+					var submitelement = document.createElement('input'); 
+					submitelement.setAttribute("type", "submit");
+					submitelement.setAttribute("name", "dsubmit");
+					if (isNew) {
+						submitelement.setAttribute("value", "Create");
+					} else {
+						submitelement.setAttribute("value", "Update");
+					}
+					
+					createform.appendChild(submitelement);
+					
+					sdk.Modal.show({
+						el: createform
+					});
+				});
+}
+
 InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(function(sdk) {
 	var link = document.createElement("link");
 	var html = '<!DOCTYPE html><html><body><span class=eloquaemail>Address21</span><span class=eloquaemail>Company1</span><p> Sample HTML </p><img src="https://www.gstatic.com/webp/gallery3/1.png"></body></html>';
@@ -324,14 +405,39 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 					success: function(response, status, jqxhr) {
 						if (response && response.elements && response.elements.length == 1) {
 							$('.inboxsdk__compose').find("[email" + "=" + "'" + contact.contact.emailAddress + "'" + "]").css('background-color', '#00FF7F');
+							if (contact.contact.name.indexOf("@") >=0) {
+								attachDoubleClick(sdk, contact.contact.emailAddress, '', '', false);
+							} else {
+								var nameParts = contact.contact.name.split(" ");
+								if (nameParts.length === 2) {
+									attachDoubleClick(sdk, contact.contact.emailAddress, nameParts[0], nameParts[1], false);
+								} else {
+									attachDoubleClick(sdk, contact.contact.emailAddress, nameParts[0], '', false);
+								}
+							}
+							
 						} else {
 							$('.inboxsdk__compose').find("[email" + "=" + "'" + contact.contact.emailAddress + "'" + "]").css('background-color', '#FF4500');
+							if (contact.contact.name.indexOf("@") >=0) {
+								attachDoubleClick(sdk, contact.contact.emailAddress, '', '', true);
+							} else {
+								var nameParts = contact.contact.name.split(" ");
+								if (nameParts.length === 2) {
+									attachDoubleClick(sdk, contact.contact.emailAddress, nameParts[0], nameParts[1], true);
+								} else {
+									attachDoubleClick(sdk, contact.contact.emailAddress, nameParts[0], '', true);
+								}
+							}
+							var nameParts = contact.contact.name.split(" ");
+							
 						}
 					},
 					error: function(jqxhr) {
 					}
 				});
+				
 			}
+
 		});
 		composeView.on('presending', function(event) {
 			if (enableTracking) {
@@ -362,7 +468,6 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 					url: url + '?xsrfToken=' + XSRF_TOKEN,
 					success: function(response, status, jqxhr) {
 						composeView.setBodyHTML(response.HtmlContent.html);
-						debugger;
 						console.log('Created external email successfully');
 					},
 					error: function(jqxhr) {

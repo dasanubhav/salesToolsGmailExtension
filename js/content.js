@@ -247,9 +247,7 @@ function attachDoubleClick(sdk, emailAddress, firstName, lastName, isNew) {
 					var x = document.getElementById("form_sample");
 
 					var createform = document.createElement('form'); // Create New Element form
-					createform.setAttribute("action", "");        // Setting action Attribute on form
-					createform.setAttribute("method", "post");  // Setting method Attribute on form
-					//x.appendChild(createform);
+					createform.setAttribute("onsubmit", "saveContact();");
 
 					var heading = document.createElement('h2'); // Heading of form
 					if (isNew) {
@@ -273,18 +271,21 @@ function attachDoubleClick(sdk, emailAddress, firstName, lastName, isNew) {
 					var emailElement = document.createElement('input'); // Create input field for name
 					emailElement.setAttribute("type", "text");  
 					emailElement.setAttribute("name", "dname");
+					emailElement.setAttribute("id", "emailAddress");
 					emailElement.setAttribute("value", emailAddress);
+					emailElement.setAttribute("disabled", '');
 					createform.appendChild(emailElement);
 
 					var linebreak = document.createElement('br');
 					createform.appendChild(linebreak);
 
 					var firstNameLabel = document.createElement('label');  //Create Label for email field
-					firstNameLabel.innerHTML = "FirstName : ";
+					firstNameLabel.innerHTML = "First Name : ";
 					createform.appendChild(firstNameLabel);
 
 					var firstNameElement = document.createElement('input'); // Create input field for email
 					firstNameElement.setAttribute("type", "text");
+					firstNameElement.setAttribute("id", "firstName");
 					firstNameElement.setAttribute("name", "demail");
 					firstNameElement.setAttribute("value", firstName);
 					createform.appendChild(firstNameElement);
@@ -293,11 +294,12 @@ function attachDoubleClick(sdk, emailAddress, firstName, lastName, isNew) {
 					createform.appendChild(emailbreak);
 
 					var lastNameLabel = document.createElement('label');  //Create Label for email field
-					lastNameLabel.innerHTML = "LastName : ";
+					lastNameLabel.innerHTML = "Last Name : ";
 					createform.appendChild(lastNameLabel);
 
 					var lastNameElement = document.createElement('input'); // Create input field for email
 					lastNameElement.setAttribute("type", "text");
+					lastNameElement.setAttribute("id", "lastName");
 					lastNameElement.setAttribute("name", "demail");
 					lastNameElement.setAttribute("value", lastName);
 					createform.appendChild(lastNameElement);
@@ -305,10 +307,28 @@ function attachDoubleClick(sdk, emailAddress, firstName, lastName, isNew) {
 					var messagebreak = document.createElement('br');
 					createform.appendChild(messagebreak);
 
+					var hiddenElement = document.createElement('input');
+					hiddenElement.setAttribute("type", "hidden");
+					hiddenElement.setAttribute("id", "operation");
+					if (isNew) {
+						hiddenElement.setAttribute("value", "create");
+					} else {
+						hiddenElement.setAttribute("value", "update");
+					}
+					createform.appendChild(hiddenElement);
+
+					var xsrfTokenElement = document.createElement('input');
+					xsrfTokenElement.setAttribute("type", "hidden");
+					xsrfTokenElement.setAttribute("id", "xsrfToken");
+					xsrfTokenElement.setAttribute("value", XSRF_TOKEN);
+					createform.appendChild(xsrfTokenElement);
+
+
 					// Append Submit Button
 					var submitelement = document.createElement('input'); 
 					submitelement.setAttribute("type", "submit");
 					submitelement.setAttribute("name", "dsubmit");
+					submitelement.setAttribute("onclick", "saveContact();");
 					if (isNew) {
 						submitelement.setAttribute("value", "Create");
 					} else {
@@ -330,6 +350,14 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 	link.type = "text/css";
 	link.rel = "stylesheet";
 	document.getElementsByTagName("head")[0].appendChild(link);
+	var fileref=document.createElement('script');
+	fileref.setAttribute("type","text/javascript");
+	fileref.setAttribute("src", chrome.extension.getURL("js/contact.js"));
+	document.getElementsByTagName("head")[0].appendChild(fileref);
+	var jquery=document.createElement('script');
+	jquery.setAttribute("type","text/javascript");
+	jquery.setAttribute("src", chrome.extension.getURL("js/jquery.js"));
+	document.getElementsByTagName("head")[0].appendChild(jquery);
 	var contentPanel;
 	sdk.Toolbars.addToolbarButtonForApp({
         title: 'Engage',
@@ -417,7 +445,7 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 							}
 							
 						} else {
-							$('.inboxsdk__compose').find("[email" + "=" + "'" + contact.contact.emailAddress + "'" + "]").css('background-color', '#FF4500');
+							$('.inboxsdk__compose').find("[email" + "=" + "'" + contact.contact.emailAddress + "'" + "]").css('background-color', '#FFFF99');
 							if (contact.contact.name.indexOf("@") >=0) {
 								attachDoubleClick(sdk, contact.contact.emailAddress, '', '', true);
 							} else {
@@ -477,6 +505,9 @@ InboxSDK.load(1, 'sdk_GMAIL_PLUGIN_V1_7da9174976', {sidebarBeta:true}).then(func
 			}
 			
 		});
+		function saveContact() {
+			debugger;
+		}
 		/*composeView.addButton({
 			title: "iframe test",
 			type: 'MODIFIER',
